@@ -10,11 +10,13 @@ import SwiftUI
 struct GameView: View {
 
     let possibleMoves = ["Rock", "Paper", "Scissors"]
-    let possibleGameResult = ["Win", "Lose"]
+    let possibleResults = ["Win", "Lose"]
 
-    @State private var currentChoice = ""
-    @State private var gameResult = ""
+    @State private var currentChoice = 0
+    @State private var gameResult = ["Win", "Lose"].randomElement()!
+
     @State private var gameScore = 0
+    @State private var gameRoundCounter = 0
 
     var body: some View {
         ZStack {
@@ -22,53 +24,62 @@ struct GameView: View {
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
-                HStack {
-                    Text("Score: ")
-                    Text("\(gameScore)")
+                VStack {
+                    HStack {
+                        Text("Score: ")
+                        Text("\(gameScore)")
+                    }
+                    .font(.system(size: 30))
+                    
+                    Text("Rounds Left: \(10 - gameRoundCounter)")
+                    Text(gameRoundCounter == 0 ? "New Game !" : "")
                 }
                 .foregroundColor(.white)
-                .font(.system(size: 30))
-                
+
                 Spacer()
-                
-                Image(possibleMoves.randomElement()!)
-                    
-                
+                Image(possibleMoves[currentChoice])
                 Spacer()
-                
-                Text("Your Must \(possibleGameResult.randomElement()!)")
+
+                Text("Your Must \(gameResult)")
                     .foregroundColor(.white)
                     .font(.system(size: 30))
                 
                 Spacer()
-                
                 HStack {
-                    Button(action: {
-                        print("Edit button was tapped")
-                    }) {
-                        Image(possibleMoves[0])
-                    }
-                    
-                    Button(action: {
-                        print("Edit button was tapped")
-                    }) {
-                        Image(possibleMoves[1])
-                    }
-                    
-                    Button(action: {
-                        print("Edit button was tapped")
-                    }) {
-                        Image(possibleMoves[2])
+                    ForEach(0...2, id: \.self) { buttonId in
+                        Button(action: {
+                            pressButton(id: buttonId)
+                            _ = imageStringName()
+                        }) {
+                            Image(possibleMoves[buttonId])
+                        }.tag(buttonId)
+                        
+                        
                     }
                 }
                 Spacer()
             }
         }
     }
-}
+    
+    func imageStringName() -> String {
+        let imageNumber = possibleMoves.randomElement()!
 
-struct GameView_Previews: PreviewProvider {
-    static var previews: some View {
-        GameView()
+        for (index, value) in possibleMoves.enumerated() {
+            if value == imageNumber {
+                currentChoice = index
+            }
+        }
+
+        return imageNumber
+    }
+
+    private func pressButton(id: Int) {
+        gameRoundCounter += 1
+        gameResult = possibleResults.randomElement()!
+
+        if gameRoundCounter == 10 {
+            gameRoundCounter = 0
+        }
     }
 }
