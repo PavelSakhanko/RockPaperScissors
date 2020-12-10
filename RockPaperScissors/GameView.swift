@@ -20,6 +20,7 @@ struct GameView: View {
     @State private var gameResult = ""
     @State private var gameScore = 0
     @State private var gameRoundCounter = 0
+    @State private var roundsLeft = ""
 
     var body: some View {
         ZStack {
@@ -29,23 +30,17 @@ struct GameView: View {
             VStack(spacing: 70) {
                 VStack {
                     Text("Score: \(gameScore)")
-                    Text(gameRoundCounter == 0 ? "New Game !" : "Rounds Left: \(10 - gameRoundCounter)")
+                    Text(gameRoundCounter == 0 || roundsLeft == "0" ? "New Game !" : "Rounds Left: \(11 - gameRoundCounter)")
                     Spacer()
-                    
-                    if currentChoiceIndex.count != 0 {
-                        Image(possibleMoves[Int(currentChoiceIndex)!])
-                    } else {
-                        Image(systemName: "play")
-                    }
 
-                    if gameResult.count == 0 {
+                    VStack(spacing: 20) {
+                        showImage()
+                        
                         Button(action: {
                             startGame()
                         }) {
-                            Text("Press to start!")
+                            Text(gameRoundCounter == 0 || roundsLeft == "0" ? "Start Game ! " : "Your Must \(gameResult)")
                         }
-                    } else {
-                        Text("Your Must \(gameResult)")
                     }
                     Spacer()
                 }
@@ -66,19 +61,13 @@ struct GameView: View {
         .foregroundColor(.white)
     }
 
+    private func showImage() -> some View {
+        gameRoundCounter == 0 || roundsLeft == "0" ? Image(systemName: "play") : Image(possibleMoves[Int(currentChoiceIndex)!])
+    }
+
     private func pressButton(id: Int) {
-        addScoreLogic()
         updateScore(id: id)
         startGame()
-    }
-    
-    private func addScoreLogic() {
-        if gameRoundCounter == 10 {
-            gameRoundCounter = 0
-            gameScore = 0
-        } else {
-            gameRoundCounter += 1
-        }
     }
     
     private func updateScore(id: Int) {
@@ -91,10 +80,10 @@ struct GameView: View {
                 gameScore -= 1
             }
         case PossibleResults.lose.rawValue:
-            if id < index || id < index && id == 0 && index == 2 {
+            if id < index || id > index && id == 2 && index == 0 {
                 gameScore += 1
             } else {
-                gameScore += 1
+                gameScore -= 1
             }
         default:
             break
@@ -105,6 +94,8 @@ struct GameView: View {
         gameResult = PossibleResults.allCases.randomElement()!.rawValue
         randomHandForGame()
         getRandomImageIndex()
+        gameRoundCounter += 1
+        roundsLeft = String(11 - gameRoundCounter)
     }
 
     private func randomHandForGame() {
