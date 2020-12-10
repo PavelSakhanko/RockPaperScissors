@@ -7,14 +7,17 @@
 
 import SwiftUI
 
+enum PossibleResults: String, CaseIterable {
+    case win = "Win"
+    case lose = "Lose"
+}
+
 struct GameView: View {
 
     let possibleMoves = ["Rock", "Paper", "Scissors"]
-    let possibleResults = ["Win", "Lose"]
 
-    @State private var currentChoice = 0
-    @State private var gameResult = ["Win", "Lose"].randomElement()!
-
+    @State private var currentChoiceIndex = ""
+    @State private var gameResult = ""
     @State private var gameScore = 0
     @State private var gameRoundCounter = 0
 
@@ -23,63 +26,101 @@ struct GameView: View {
             Color.blue
                 .edgesIgnoringSafeArea(.all)
             
-            VStack {
+            VStack(spacing: 70) {
                 VStack {
-                    HStack {
-                        Text("Score: ")
-                        Text("\(gameScore)")
-                    }
-                    .font(.system(size: 30))
+                    Text("Score: \(gameScore)")
+                    Text(gameRoundCounter == 0 ? "New Game !" : "Rounds Left: \(10 - gameRoundCounter)")
+                    Spacer()
                     
-                    Text("Rounds Left: \(10 - gameRoundCounter)")
-                    Text(gameRoundCounter == 0 ? "New Game !" : "")
+                    if currentChoiceIndex.count != 0 {
+                        Image(possibleMoves[Int(currentChoiceIndex)!])
+                    } else {
+                        Image(systemName: "play")
+                    }
+
+                    if gameResult.count == 0 {
+                        Button(action: {
+                            startGame()
+                        }) {
+                            Text("Press to start!")
+                        }
+                    } else {
+                        Text("Your Must \(gameResult)")
+                    }
+                    Spacer()
                 }
-                .foregroundColor(.white)
+                .font(.system(size: 30))
 
-                Spacer()
-                Image(possibleMoves[currentChoice])
-                Spacer()
-
-                Text("Your Must \(gameResult)")
-                    .foregroundColor(.white)
-                    .font(.system(size: 30))
-                
-                Spacer()
                 HStack {
                     ForEach(0...2, id: \.self) { buttonId in
                         Button(action: {
                             pressButton(id: buttonId)
-                            _ = imageStringName()
                         }) {
                             Image(possibleMoves[buttonId])
                         }.tag(buttonId)
-                        
-                        
                     }
                 }
                 Spacer()
             }
         }
+        .foregroundColor(.white)
+    }
+
+    private func pressButton(id: Int) {
+        addScoreLogic()
+        updateScore(id: id)
+        startGame()
     }
     
-    func imageStringName() -> String {
+    private func addScoreLogic() {
+        if gameRoundCounter == 10 {
+            gameRoundCounter = 0
+            gameScore = 0
+        } else {
+            gameRoundCounter += 1
+        }
+    }
+    
+    private func updateScore(id: Int) {
+        guard let index = Int(currentChoiceIndex) else { return }
+        switch gameResult {
+        case PossibleResults.win.rawValue:
+            if id > index || id < index && id == 0 && index == 2 {
+                gameScore += 1
+            } else {
+                gameScore -= 1
+            }
+        case PossibleResults.lose.rawValue:
+            if id < index || id < index && id == 0 && index == 2 {
+                gameScore += 1
+            } else {
+                gameScore += 1
+            }
+        default:
+            break
+        }
+    }
+    
+    private func startGame() {
+        gameResult = PossibleResults.allCases.randomElement()!.rawValue
+        randomHandForGame()
+        getRandomImageIndex()
+    }
+
+    private func randomHandForGame() {
         let imageNumber = possibleMoves.randomElement()!
 
         for (index, value) in possibleMoves.enumerated() {
             if value == imageNumber {
-                currentChoice = index
+                currentChoiceIndex = String(index)
             }
         }
-
-        return imageNumber
     }
-
-    private func pressButton(id: Int) {
-        gameRoundCounter += 1
-        gameResult = possibleResults.randomElement()!
-
-        if gameRoundCounter == 10 {
-            gameRoundCounter = 0
+    
+    private func getRandomImageIndex() {
+        if currentChoiceIndex != "" {
+            guard let index = Int(currentChoiceIndex) else { return }
+            currentChoiceIndex = "\(index)"
         }
     }
 }
